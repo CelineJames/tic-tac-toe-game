@@ -30,7 +30,60 @@ function deriveWinner(gameBoard) {
   return null;
 }
 
-export default function VsComputerGame({playClick, soundOn}) {
+// Helper: check for win or block opportunity
+function getWinningMove(board, symbol) {
+  for (const combination of WINNING_COMBINATIONS) {
+    const positions = combination.map(pos => board[pos.row][pos.column]);
+    const filled = positions.filter(p => p === symbol).length;
+    const emptyIndex = positions.findIndex(p => p === null);
+
+    if (filled === 2 && emptyIndex !== -1) {
+      const emptyPos = combination[emptyIndex];
+      return { row: emptyPos.row, col: emptyPos.column };
+    }
+  }
+  return null;
+}
+
+// Smart move logic
+function getSmartComputerMove(board, computerSymbol, playerSymbol) {
+  // 1. Try to win
+  const winningMove = getWinningMove(board, computerSymbol);
+  if (winningMove) return winningMove;
+
+  // 2. Block player
+  const blockingMove = getWinningMove(board, playerSymbol);
+  if (blockingMove) return blockingMove;
+
+  // 3. Take center
+  if (board[1][1] === null) return { row: 1, col: 1 };
+
+  // 4. Take corners
+  const corners = [
+    { row: 0, col: 0 },
+    { row: 0, col: 2 },
+    { row: 2, col: 0 },
+    { row: 2, col: 2 },
+  ];
+  for (const corner of corners) {
+    if (board[corner.row][corner.col] === null) {
+      return corner;
+    }
+  }
+
+  // 5. Always Pick available square 
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      if (!board[row][col]) {
+        return { row, col };
+      }
+    }
+  }
+
+  return null;
+}
+
+export default function VsComputerGame({ playClick, soundOn }) {
   const [playerSymbol, setPlayerSymbol] = useState(null);
   const [turns, setTurns] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState("X");
@@ -42,8 +95,7 @@ export default function VsComputerGame({playClick, soundOn}) {
   const computerSymbol = playerSymbol === "X" ? "O" : "X";
   const activeSymbol = turns.length % 2 === 0 ? "X" : "O";
 
-  // Computer move 
-
+  // Smart Computer Move
   useEffect(() => {
     if (
       playerSymbol &&
@@ -51,40 +103,29 @@ export default function VsComputerGame({playClick, soundOn}) {
       !winner &&
       !hasDrawn
     ) {
-      const availableSquares = [];
+      const move = getSmartComputerMove(gameBoard, computerSymbol, playerSymbol);
 
-      for (let row = 0; row < 3; row++) {
-        for (let col = 0; col < 3; col++) {
-          if (!gameBoard[row][col]) {
-            availableSquares.push({ row, col });
-          }
-        }
-      }
-
-      if (availableSquares.length > 0) {
-        const randomIndex = Math.floor(Math.random() * availableSquares.length);
-        const move = availableSquares[randomIndex];
-
+      if (move) {
         const timer = setTimeout(() => {
           handleSelectSquare(move.row, move.col);
-        }, 800); // almost 1 second delay
+        }, 800);
 
-        return () => clearTimeout(timer); // cleanup on unmount
+        return () => clearTimeout(timer);
       }
     }
   }, [turns, activeSymbol, computerSymbol, gameBoard, playerSymbol, winner, hasDrawn]);
 
   function handleSelectSymbol(symbol) {
     setPlayerSymbol(symbol);
-    setCurrentPlayer("X"); // 
+    setCurrentPlayer("X");
   }
 
   function handleSelectSquare(rowIndex, colIndex) {
     if (gameBoard[rowIndex][colIndex] || winner) return;
 
     if (activeSymbol === playerSymbol && soundOn) {
-    playClick();
-  }
+      playClick();
+    }
 
     const newTurn = {
       square: { row: rowIndex, col: colIndex },
@@ -108,17 +149,17 @@ export default function VsComputerGame({playClick, soundOn}) {
           <h2 className="">Choose your symbol</h2>
           <div className="choose-buttons">
             <button
-            onClick={() => handleSelectSymbol("X")}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded m-2"
-          >
-            Play as X
-          </button>
-          <button
-            onClick={() => handleSelectSymbol("O")}
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded m-2"
-          >
-            Play as O
-          </button>
+              onClick={() => handleSelectSymbol("X")}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded m-2"
+            >
+              Play as X
+            </button>
+            <button
+              onClick={() => handleSelectSymbol("O")}
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded m-2"
+            >
+              Play as O
+            </button>
           </div>
         </div>
       ) : (
@@ -163,6 +204,7 @@ export default function VsComputerGame({playClick, soundOn}) {
                 onRestart={handleRestart}
               />
             )}
+
             <GameBoard onSelectsquare={handleSelectSquare} board={gameBoard} />
           </div>
           <Log turns={turns} />
