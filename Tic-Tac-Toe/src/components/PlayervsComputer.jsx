@@ -71,7 +71,7 @@ function getSmartComputerMove(board, computerSymbol, playerSymbol) {
     }
   }
 
-  // 5. Always Pick available square 
+  // 5. Always P ick available square 
   for (let row = 0; row < 3; row++) {
     for (let col = 0; col < 3; col++) {
       if (!board[row][col]) {
