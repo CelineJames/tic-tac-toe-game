@@ -250,6 +250,7 @@ width: 8rem;
   font-size: 5rem;
   cursor: pointer;
   font-family: 'Caprasimo', cursive;
+  padding: .5rem;
 }
 
 #game-over {
@@ -458,7 +459,7 @@ width: 8rem;
   }
 
   #game-board button {
-  max-width: 4rem;
+  width: 4rem;
   height: 4rem;
   font-size: 2.5rem;
 }
@@ -515,6 +516,6 @@ width: 8rem;
   #game-board button {
   max-width: 3rem;
   height: 3rem;
-  font-size: 2.5rem;
+  font-size: 1.5rem;
 }
 }
